@@ -1663,107 +1663,6 @@ faveur du bup-nx, à une désintoxication de 13 jours utilisant soit le
 bup-nx soit la clonidine. Au total, 113 patients en milieu hospitalier
 (77 bup-nx, 36 clonidine) et 231 patients en ambulatoire (157 bup-nx, 74
 clonidine) ont participé à l’étude.</p>
-<pre class="r"><code>#SUPRIMMER LES VARIABLE UTILISER SUR DUMMY VARIABLES 
-table1 &lt;- table1 %&gt;% 
-  select(-c(MARITAL,EMPLOYEMENT,USUBJID,-EDUCYRS))
-
-#REMPLACER LA VARIABLE OPIATE PAR ECHEC/SUCCÉS
-table1 &lt;- table1 %&gt;%
-  mutate(TARGET = OPIATE) %&gt;%
-  select(-OPIATE)
-
-#CONVERTIR LES CARACTÉRE EN FACTOR 
-table1$EDUCYRS &lt;- as.factor(table1$EDUCYRS)
-table1$STUDYID &lt;- as.factor(table1$STUDYID)
-table1$ARM &lt;- as.factor(table1$ARM)
-table1$METHADONE.SC &lt;- as.factor(table1$METHADONE.SC)
-table1$MORPHINE.SC &lt;- as.factor(table1$MORPHINE.SC)
-table1$GENDER&lt;-as.factor(table1$GENDER)
-table1[, 15:29] &lt;- lapply(table1[, 15:29], as.factor)
-        
-################ Avec imputation des NA ###################
-df &lt;- table1
-
-#IMPUTER  LES NA 
-set.seed(70)
-df &lt;- missForest(df, maxiter = 10, verbose = T)</code></pre>
-<pre><code>##   missForest iteration 1 in progress...done!
-##     estimated error(s): 0.599019 0.02951824 
-##     difference(s): 0.0002981167 0 
-##     time: 1.47 seconds
-## 
-##   missForest iteration 2 in progress...done!
-##     estimated error(s): 0.6003467 0.02868282 
-##     difference(s): 0.0002544176 0 
-##     time: 1.48 seconds
-## 
-##   missForest iteration 3 in progress...done!
-##     estimated error(s): 0.5952391 0.03007519 
-##     difference(s): 0.0002709723 0 
-##     time: 1.61 seconds</code></pre>
-<pre class="r"><code>df &lt;- df$ximp
-
-#CONNAITRE LE NOMBRE DE NA 
-na_count &lt;- colSums(is.na(df))
-print(na_count) </code></pre>
-<pre><code>##                                   STUDYID 
-##                                         0 
-##                                       ARM 
-##                                         0 
-##                                       AGE 
-##                                         0 
-##                                    GENDER 
-##                                         0 
-##                                   EDUCYRS 
-##                                         0 
-##                                       BMI 
-##                                         0 
-##                                       SBP 
-##                                         0 
-##                                       DBP 
-##                                         0 
-##                                     PULSE 
-##                                         0 
-##                                      RESP 
-##                                         0 
-##                                      TEMP 
-##                                         0 
-##                                  VASC1.SC 
-##                                         0 
-##                              METHADONE.SC 
-##                                         0 
-##                               MORPHINE.SC 
-##                                         0 
-##                          MARITAL.DIVORCED 
-##                                         0 
-##                   MARITAL.LEGALLY MARRIED 
-##                                         0 
-##  MARITAL.LIVING WITH PARTNER/COHABITATING 
-##                                         0 
-##                     MARITAL.NEVER MARRIED 
-##                                         0 
-##                         MARITAL.SEPARATED 
-##                                         0 
-##                           MARITAL.WIDOWED 
-##                                         0 
-##        EMPLOYEMENT.FULL TIME (35+ HRS/WK) 
-##                                         0 
-##                     EMPLOYEMENT.HOMEMAKER 
-##                                         0 
-##     EMPLOYEMENT.IN CONTROLLED ENVIRONMENT 
-##                                         0 
-## EMPLOYEMENT.PART TIME (IRREGULAR DAYWORK) 
-##                                         0 
-##     EMPLOYEMENT.PART TIME (REGULAR HOURS) 
-##                                         0 
-##            EMPLOYEMENT.RETIRED/DISABILITY 
-##                                         0 
-##                       EMPLOYEMENT.STUDENT 
-##                                         0 
-##                    EMPLOYEMENT.UNEMPLOYED 
-##                                         0 
-##                                    TARGET 
-##                                         0</code></pre>
 </div>
 <div id="analyse-exploratoire-des-données-aed" class="section level2">
 <h2>Analyse Exploratoire des Données (AED)</h2>
@@ -1777,6 +1676,92 @@ ont atteint le critère de succès du traitement, tandis que seulement 5%
 des patients assignés à la clonidine l’ont atteint. Ces observations
 initiales soulignent l’importance potentielle du bup-nx pour la
 désintoxication des opioïdes.</p>
+<pre class="r"><code>summary(df)</code></pre>
+<pre><code>##  STUDYID ARM          AGE        GENDER     EDUCYRS         BMI         
+##  0:113   0:110   Min.   :18.86   0:233   12     :131   Min.   : 0.2228  
+##  1:230   1:233   1st Qu.:29.51   1:110   14     : 51   1st Qu.:21.8934  
+##                  Median :39.46           11     : 38   Median :24.3636  
+##                  Mean   :37.96           13     : 34   Mean   :25.0800  
+##                  3rd Qu.:45.63           16     : 21   3rd Qu.:27.7595  
+##                  Max.   :65.00           10     : 20   Max.   :46.4493  
+##                                          (Other): 48   NA&#39;s   :4        
+##       SBP             DBP             PULSE             RESP      
+##  Min.   : 94.0   Min.   : 50.00   Min.   : 47.00   Min.   : 1.00  
+##  1st Qu.:110.0   1st Qu.: 70.00   1st Qu.: 68.00   1st Qu.:16.00  
+##  Median :119.8   Median : 78.00   Median : 74.00   Median :16.00  
+##  Mean   :121.8   Mean   : 80.58   Mean   : 76.07   Mean   :16.79  
+##  3rd Qu.:130.0   3rd Qu.: 86.00   3rd Qu.: 84.00   3rd Qu.:18.00  
+##  Max.   :182.0   Max.   :701.00   Max.   :131.00   Max.   :31.00  
+##  NA&#39;s   :3       NA&#39;s   :3        NA&#39;s   :4        NA&#39;s   :8      
+##       TEMP          VASC1.SC     METHADONE.SC MORPHINE.SC MARITAL.DIVORCED
+##  Min.   : 95.0   Min.   :  0.0   0   :311     0   : 96    0:288           
+##  1st Qu.: 97.9   1st Qu.: 50.0   1   : 31     1   :246    1: 55           
+##  Median : 98.4   Median : 73.0   NA&#39;s:  1     NA&#39;s:  1                    
+##  Mean   :101.0   Mean   : 66.9                                            
+##  3rd Qu.: 98.8   3rd Qu.: 92.0                                            
+##  Max.   :999.9   Max.   :100.0                                            
+##  NA&#39;s   :8       NA&#39;s   :12                                               
+##  MARITAL.LEGALLY MARRIED MARITAL.LIVING WITH PARTNER/COHABITATING
+##  0:281                   0:311                                   
+##  1: 62                   1: 32                                   
+##                                                                  
+##                                                                  
+##                                                                  
+##                                                                  
+##                                                                  
+##  MARITAL.NEVER MARRIED MARITAL.SEPARATED MARITAL.WIDOWED
+##  0:183                 0:317             0:335          
+##  1:160                 1: 26             1:  8          
+##                                                         
+##                                                         
+##                                                         
+##                                                         
+##                                                         
+##  EMPLOYEMENT.FULL TIME (35+ HRS/WK) EMPLOYEMENT.HOMEMAKER
+##  0   :152                           0   :333             
+##  1   :190                           1   :  9             
+##  NA&#39;s:  1                           NA&#39;s:  1             
+##                                                          
+##                                                          
+##                                                          
+##                                                          
+##  EMPLOYEMENT.IN CONTROLLED ENVIRONMENT
+##  0   :340                             
+##  1   :  2                             
+##  NA&#39;s:  1                             
+##                                       
+##                                       
+##                                       
+##                                       
+##  EMPLOYEMENT.PART TIME (IRREGULAR DAYWORK)
+##  0   :295                                 
+##  1   : 47                                 
+##  NA&#39;s:  1                                 
+##                                           
+##                                           
+##                                           
+##                                           
+##  EMPLOYEMENT.PART TIME (REGULAR HOURS) EMPLOYEMENT.RETIRED/DISABILITY
+##  0   :323                              0   :335                      
+##  1   : 19                              1   :  7                      
+##  NA&#39;s:  1                              NA&#39;s:  1                      
+##                                                                      
+##                                                                      
+##                                                                      
+##                                                                      
+##  EMPLOYEMENT.STUDENT EMPLOYEMENT.UNEMPLOYED TARGET 
+##  0   :331            0   :285               0:108  
+##  1   : 11            1   : 57               1:235  
+##  NA&#39;s:  1            NA&#39;s:  1                      
+##                                                    
+##                                                    
+##                                                    
+## </code></pre>
+<pre class="r"><code># Calculer les pourcentages de réussite et d&#39;échec
+percentages &lt;- prop.table(table(df$TARGET)) * 100
+# Créer un histogramme des pourcentages
+barplot(percentages, col = c(&quot;green&quot;, &quot;red&quot;), xlab = &quot;Résultat&quot;, ylab = &quot;Pourcentage&quot;, main = &quot;Histogramme des pourcentages de succès et d&#39;échec&quot;)</code></pre>
+<p><img src="data:image/png;base64,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" width="672" /></p>
 </div>
 <div id="prétraitement-des-données" class="section level2">
 <h2>Prétraitement des Données</h2>
@@ -1790,14 +1775,28 @@ nous avons effectuées sont les suivantes :</p>
 données et avons effectué une imputation des valeurs manquantes avec
 missforest</p>
 <pre class="r"><code>set.seed(70)
-df &lt;- missForest(df, maxiter = 10, verbose = T)
-df &lt;- df$ximp</code></pre>
+df &lt;- missForest(df, maxiter = 10, verbose = T)</code></pre>
+<pre><code>##   missForest iteration 1 in progress...done!
+##     estimated error(s): 0.599019 0.02951824 
+##     difference(s): 0.0002981167 0 
+##     time: 1.58 seconds
+## 
+##   missForest iteration 2 in progress...done!
+##     estimated error(s): 0.6003467 0.02868282 
+##     difference(s): 0.0002544176 0 
+##     time: 1.43 seconds
+## 
+##   missForest iteration 3 in progress...done!
+##     estimated error(s): 0.5952391 0.03007519 
+##     difference(s): 0.0002709723 0 
+##     time: 1.6 seconds</code></pre>
+<pre class="r"><code>df &lt;- df$ximp</code></pre>
 </div>
 <div id="encodage-des-variables-catégorielles" class="section level3">
 <h3>Encodage des variables catégorielles :</h3>
 <p>Nous avons identifié les variables catégorielles dans l’ensemble de
-données et les avons encodées en utilisant des techniques telles que
-l’encodage one-hot.</p>
+données et les avons encodées en utilisant la technique du encodage
+one-hot.</p>
 <pre class="r"><code>table1$MARITAL&lt;- as.factor(table1$MARITAL)
 marital_model &lt;- dummyVars(~ MARITAL, data = table1)
 marital_data &lt;- predict(marital_model, newdata = table1)
@@ -1819,6 +1818,13 @@ l’échelle des caractéristiques ou la transformation logarithmique.</p>
 <h3>Séparation de l’ensemble de données :</h3>
 <p>Nous avons divisé l’ensemble de données en deux parties distinctes :
 un ensemble d’entraînement (80%) et un ensemble de validation (20%).</p>
+<pre class="r"><code># Create an index for data partitioning
+index &lt;- createDataPartition(df_renomme$TARGET, p = 0.8, list = FALSE)
+
+# Split the data into training and testing sets
+train_data &lt;- df_renomme[index, ]  
+test_data &lt;- df_renomme[-index, ]  
+test_data_ref &lt;- df_renomme[-index, ]</code></pre>
 </div>
 </div>
 <div id="méthodologie" class="section level2">
@@ -1835,10 +1841,294 @@ d’évaluation.</p>
 automatique ont montré des performances prometteuses dans la prédiction
 du statut de succès ou d’échec du traitement chez les patients. Voici
 les résultats de l’évaluation basée sur l’exactitude :</p>
-<p>XGBoost : Accuracy = 0.85 SVM : Accuracy = 0.79 Random Forest :
-Accuracy = 0.82 Ces résultats indiquent que les trois modèles ont une
+<p>XGBoost : Accuracy = 0.79 SVM : Accuracy = 0.82 Random Forest :
+Accuracy = 0.79 Ces résultats indiquent que les trois modèles ont une
 capacité prédictive significative. Cependant, le modèle XGBoost a obtenu
 la meilleure exactitude parmi les trois modèles testés.</p>
+<pre class="r"><code>ctrl &lt;- trainControl(method = &quot;cv&quot;, number = 10) 
+########### RANDOM FOREST#################
+
+# Train a random forest model using the train() function
+set.seed(777)
+RFmodel &lt;- train(TARGET ~ STUDYID+AGE+ARM+GENDER+BMI+METHADONE.SC+SBP+MORPHINE.SC+DBP+PULSE+RESP+VASC1.SC +PULSE +EDUCYRS
+, data = train_data, method = &quot;rf&quot;, trControl = ctrl)
+RFmodel</code></pre>
+<pre><code>## Random Forest 
+## 
+## 275 samples
+##  13 predictor
+##   2 classes: &#39;0&#39;, &#39;1&#39; 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold) 
+## Summary of sample sizes: 247, 247, 247, 247, 247, 247, ... 
+## Resampling results across tuning parameters:
+## 
+##   mtry  Accuracy   Kappa     
+##    2    0.6873626  0.06630914
+##   13    0.6907916  0.24324253
+##   25    0.6836386  0.23471642
+## 
+## Accuracy was used to select the optimal model using the largest value.
+## The final value used for the model was mtry = 13.</code></pre>
+<pre class="r"><code># Predict values using the trained random forest model
+RFpredictions &lt;- predict(RFmodel, newdata = test_data)
+
+# Create a confusion matrix
+confusion &lt;- confusionMatrix(RFpredictions, reference = test_data_ref$TARGET)
+confusion</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction  0  1
+##          0 13  6
+##          1  8 41
+##                                           
+##                Accuracy : 0.7941          
+##                  95% CI : (0.6788, 0.8826)
+##     No Information Rate : 0.6912          
+##     P-Value [Acc &gt; NIR] : 0.04038         
+##                                           
+##                   Kappa : 0.5047          
+##                                           
+##  Mcnemar&#39;s Test P-Value : 0.78927         
+##                                           
+##             Sensitivity : 0.6190          
+##             Specificity : 0.8723          
+##          Pos Pred Value : 0.6842          
+##          Neg Pred Value : 0.8367          
+##              Prevalence : 0.3088          
+##          Detection Rate : 0.1912          
+##    Detection Prevalence : 0.2794          
+##       Balanced Accuracy : 0.7457          
+##                                           
+##        &#39;Positive&#39; Class : 0               
+## </code></pre>
+<pre class="r"><code>############# SVM ###############################
+set.seed(777)
+SVmodel &lt;- train(TARGET ~ STUDYID+AGE+ARM+GENDER+METHADONE.SC+BMI+SBP+MORPHINE.SC+DBP+PULSE+EDUCYRS+RESP+TEMP+VASC1.SC
+, data = train_data, method = &quot;svmLinear&quot;, trControl = ctrl)
+SVmodel</code></pre>
+<pre><code>## Support Vector Machines with Linear Kernel 
+## 
+## 275 samples
+##  14 predictor
+##   2 classes: &#39;0&#39;, &#39;1&#39; 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold) 
+## Summary of sample sizes: 247, 247, 247, 247, 247, 247, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa    
+##   0.7487281  0.3713827
+## 
+## Tuning parameter &#39;C&#39; was held constant at a value of 1</code></pre>
+<pre class="r"><code># Predict values using the trained random forest model
+SVpredictions &lt;- predict(SVmodel, newdata = test_data)
+
+# Create a confusion matrix
+confusion2 &lt;- confusionMatrix(SVpredictions, reference = test_data_ref$TARGET)
+confusion2</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction  0  1
+##          0 12  3
+##          1  9 44
+##                                          
+##                Accuracy : 0.8235         
+##                  95% CI : (0.712, 0.9053)
+##     No Information Rate : 0.6912         
+##     P-Value [Acc &gt; NIR] : 0.01016        
+##                                          
+##                   Kappa : 0.5512         
+##                                          
+##  Mcnemar&#39;s Test P-Value : 0.14891        
+##                                          
+##             Sensitivity : 0.5714         
+##             Specificity : 0.9362         
+##          Pos Pred Value : 0.8000         
+##          Neg Pred Value : 0.8302         
+##              Prevalence : 0.3088         
+##          Detection Rate : 0.1765         
+##    Detection Prevalence : 0.2206         
+##       Balanced Accuracy : 0.7538         
+##                                          
+##        &#39;Positive&#39; Class : 0              
+## </code></pre>
+<pre class="r"><code>############## XGBOOST###########################
+
+set.seed(777)
+
+grid &lt;- expand.grid(nrounds = c(50, 100, 150),
+                    max_depth = c(3, 6, 9),
+                    eta = c(0.1, 0.5, 0.8))
+
+XGBTREE &lt;- train(TARGET ~ STUDYID+AGE+ARM+GENDER+METHADONE.SC+BMI+SBP+MORPHINE.SC+DBP+PULSE+EDUCYRS+RESP+TEMP+VASC1.SC
+                 , data = train_data, method = &quot;xgbTree&quot;, trControl = ctrl, verbosity = 0)
+XGBTREE</code></pre>
+<pre><code>## eXtreme Gradient Boosting 
+## 
+## 275 samples
+##  14 predictor
+##   2 classes: &#39;0&#39;, &#39;1&#39; 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold) 
+## Summary of sample sizes: 247, 247, 247, 247, 247, 247, ... 
+## Resampling results across tuning parameters:
+## 
+##   eta  max_depth  colsample_bytree  subsample  nrounds  Accuracy   Kappa     
+##   0.3  1          0.6               0.50        50      0.6611315  0.13720265
+##   0.3  1          0.6               0.50       100      0.6398555  0.13294104
+##   0.3  1          0.6               0.50       150      0.6503053  0.15895911
+##   0.3  1          0.6               0.75        50      0.6873423  0.21252233
+##   0.3  1          0.6               0.75       100      0.6577025  0.15396844
+##   0.3  1          0.6               0.75       150      0.6685694  0.17641306
+##   0.3  1          0.6               1.00        50      0.7123423  0.27116966
+##   0.3  1          0.6               1.00       100      0.6833639  0.19364578
+##   0.3  1          0.6               1.00       150      0.6759565  0.18458474
+##   0.3  1          0.8               0.50        50      0.6946276  0.24599227
+##   0.3  1          0.8               0.50       100      0.6651099  0.18403121
+##   0.3  1          0.8               0.50       150      0.6397334  0.13945786
+##   0.3  1          0.8               0.75        50      0.6939560  0.23075731
+##   0.3  1          0.8               0.75       100      0.6575702  0.13576160
+##   0.3  1          0.8               0.75       150      0.6578449  0.14743779
+##   0.3  1          0.8               1.00        50      0.7050672  0.25391486
+##   0.3  1          0.8               1.00       100      0.6798026  0.20305998
+##   0.3  1          0.8               1.00       150      0.6686813  0.16957741
+##   0.3  2          0.6               0.50        50      0.6577025  0.16801022
+##   0.3  2          0.6               0.50       100      0.6610094  0.19210533
+##   0.3  2          0.6               0.50       150      0.6501526  0.18179162
+##   0.3  2          0.6               0.75        50      0.6800773  0.21620977
+##   0.3  2          0.6               0.75       100      0.6540090  0.16916573
+##   0.3  2          0.6               0.75       150      0.6430301  0.12673695
+##   0.3  2          0.6               1.00        50      0.6902422  0.21969412
+##   0.3  2          0.6               1.00       100      0.6791209  0.21075828
+##   0.3  2          0.6               1.00       150      0.6717135  0.18062941
+##   0.3  2          0.8               0.50        50      0.6609992  0.15903135
+##   0.3  2          0.8               0.50       100      0.6310643  0.11701041
+##   0.3  2          0.8               0.50       150      0.6205026  0.07861294
+##   0.3  2          0.8               0.75        50      0.6541311  0.15426407
+##   0.3  2          0.8               0.75       100      0.6098087  0.05951922
+##   0.3  2          0.8               0.75       150      0.6099410  0.07418432
+##   0.3  2          0.8               1.00        50      0.6976496  0.23037745
+##   0.3  2          0.8               1.00       100      0.6611416  0.18129718
+##   0.3  2          0.8               1.00       150      0.6350733  0.11337607
+##   0.3  3          0.6               0.50        50      0.6582621  0.16575204
+##   0.3  3          0.6               0.50       100      0.6497456  0.13118407
+##   0.3  3          0.6               0.50       150      0.6210521  0.06027993
+##   0.3  3          0.6               0.75        50      0.6602055  0.14651184
+##   0.3  3          0.6               0.75       100      0.6422059  0.12788316
+##   0.3  3          0.6               0.75       150      0.6273911  0.09742636
+##   0.3  3          0.6               1.00        50      0.6935490  0.22991268
+##   0.3  3          0.6               1.00       100      0.6899674  0.21737688
+##   0.3  3          0.6               1.00       150      0.6788563  0.19228244
+##   0.3  3          0.8               0.50        50      0.6612841  0.16934479
+##   0.3  3          0.8               0.50       100      0.6471408  0.16632548
+##   0.3  3          0.8               0.50       150      0.6250305  0.11809460
+##   0.3  3          0.8               0.75        50      0.6752849  0.18997709
+##   0.3  3          0.8               0.75       100      0.6500305  0.13514744
+##   0.3  3          0.8               0.75       150      0.6353480  0.11009659
+##   0.3  3          0.8               1.00        50      0.6748779  0.17760568
+##   0.3  3          0.8               1.00       100      0.6677350  0.18707600
+##   0.3  3          0.8               1.00       150      0.6603276  0.17197246
+##   0.4  1          0.6               0.50        50      0.6609992  0.14669966
+##   0.4  1          0.6               0.50       100      0.6399878  0.12526717
+##   0.4  1          0.6               0.50       150      0.6250407  0.08418816
+##   0.4  1          0.6               0.75        50      0.6759565  0.20190001
+##   0.4  1          0.6               0.75       100      0.6434168  0.13559527
+##   0.4  1          0.6               0.75       150      0.6210521  0.10254639
+##   0.4  1          0.6               1.00        50      0.6907814  0.22538798
+##   0.4  1          0.6               1.00       100      0.6796602  0.18989159
+##   0.4  1          0.6               1.00       150      0.6651099  0.15962632
+##   0.4  1          0.8               0.50        50      0.6614062  0.14917944
+##   0.4  1          0.8               0.50       100      0.6651201  0.19662991
+##   0.4  1          0.8               0.50       150      0.6464591  0.15869963
+##   0.4  1          0.8               0.75        50      0.7015059  0.23419089
+##   0.4  1          0.8               0.75       100      0.6766382  0.20017153
+##   0.4  1          0.8               0.75       150      0.6364164  0.12859860
+##   0.4  1          0.8               1.00        50      0.7050570  0.23999039
+##   0.4  1          0.8               1.00       100      0.6870676  0.22251872
+##   0.4  1          0.8               1.00       150      0.6651099  0.15597547
+##   0.4  2          0.6               0.50        50      0.6458893  0.14638067
+##   0.4  2          0.6               0.50       100      0.6684168  0.19106885
+##   0.4  2          0.6               0.50       150      0.6464489  0.13361641
+##   0.4  2          0.6               0.75        50      0.6721205  0.20165182
+##   0.4  2          0.6               0.75       100      0.6390415  0.12715301
+##   0.4  2          0.6               0.75       150      0.6390415  0.12713786
+##   0.4  2          0.6               1.00        50      0.6646927  0.15465457
+##   0.4  2          0.6               1.00       100      0.6718661  0.20128711
+##   0.4  2          0.6               1.00       150      0.6498982  0.15149793
+##   0.4  2          0.8               0.50        50      0.6534697  0.18515931
+##   0.4  2          0.8               0.50       100      0.6098189  0.08753740
+##   0.4  2          0.8               0.50       150      0.6069088  0.06546885
+##   0.4  2          0.8               0.75        50      0.6386243  0.13838339
+##   0.4  2          0.8               0.75       100      0.6350631  0.14375162
+##   0.4  2          0.8               0.75       150      0.6163919  0.09043200
+##   0.4  2          0.8               1.00        50      0.6721103  0.19725774
+##   0.4  2          0.8               1.00       100      0.6537342  0.14885833
+##   0.4  2          0.8               1.00       150      0.6463268  0.14930732
+##   0.4  3          0.6               0.50        50      0.6612637  0.16185787
+##   0.4  3          0.6               0.50       100      0.6390110  0.12196943
+##   0.4  3          0.6               0.50       150      0.6277778  0.11199957
+##   0.4  3          0.6               0.75        50      0.6426028  0.13751737
+##   0.4  3          0.6               0.75       100      0.6280525  0.12135917
+##   0.4  3          0.6               0.75       150      0.6170737  0.09097616
+##   0.4  3          0.6               1.00        50      0.6791209  0.20786372
+##   0.4  3          0.6               1.00       100      0.6684066  0.19736726
+##   0.4  3          0.6               1.00       150      0.6570208  0.16831061
+##   0.4  3          0.8               0.50        50      0.6796805  0.21389970
+##   0.4  3          0.8               0.50       100      0.6434371  0.14867366
+##   0.4  3          0.8               0.50       150      0.6504375  0.16047541
+##   0.4  3          0.8               0.75        50      0.6498779  0.13432726
+##   0.4  3          0.8               0.75       100      0.6501526  0.13442202
+##   0.4  3          0.8               0.75       150      0.6424807  0.13929416
+##   0.4  3          0.8               1.00        50      0.6681420  0.19858724
+##   0.4  3          0.8               1.00       100      0.6648555  0.19386447
+##   0.4  3          0.8               1.00       150      0.6648555  0.19257168
+## 
+## Tuning parameter &#39;gamma&#39; was held constant at a value of 0
+## Tuning
+##  parameter &#39;min_child_weight&#39; was held constant at a value of 1
+## Accuracy was used to select the optimal model using the largest value.
+## The final values used for the model were nrounds = 50, max_depth = 1, eta
+##  = 0.3, gamma = 0, colsample_bytree = 0.6, min_child_weight = 1 and subsample
+##  = 1.</code></pre>
+<pre class="r"><code># Predict values using the trained random forest model
+XGBTREEpredictions &lt;- predict(XGBTREE, newdata = test_data)
+
+# Create a confusion matrix
+confusion2 &lt;- confusionMatrix(XGBTREEpredictions, reference = test_data_ref$TARGET)
+confusion2</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction  0  1
+##          0 10  3
+##          1 11 44
+##                                           
+##                Accuracy : 0.7941          
+##                  95% CI : (0.6788, 0.8826)
+##     No Information Rate : 0.6912          
+##     P-Value [Acc &gt; NIR] : 0.04038         
+##                                           
+##                   Kappa : 0.4609          
+##                                           
+##  Mcnemar&#39;s Test P-Value : 0.06137         
+##                                           
+##             Sensitivity : 0.4762          
+##             Specificity : 0.9362          
+##          Pos Pred Value : 0.7692          
+##          Neg Pred Value : 0.8000          
+##              Prevalence : 0.3088          
+##          Detection Rate : 0.1471          
+##    Detection Prevalence : 0.1912          
+##       Balanced Accuracy : 0.7062          
+##                                           
+##        &#39;Positive&#39; Class : 0               
+## </code></pre>
 </div>
 </div>
 
